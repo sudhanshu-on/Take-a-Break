@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Break Extension</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: Arial, sans-serif; padding: 12px; width: 320px; }
+    label { display:block; margin-top:8px; }
+    input[type="text"], input[type="number"] { width:100%; padding:6px; box-sizing:border-box }
+    .site-row { display:flex; gap:6px; margin-top:6px }
+    .site-row input { flex:1 }
+    .site-list { margin-top:8px }
+    button { margin-top:10px }
+  </style>
+</head>
+<body>
+  <h1>Break Extension</h1>
+
+  <label>Default break seconds</label>
+  <input id="defaultBreak" type="number" min="1" value="5" />
+
+  <label>Per-site limits (hostname → seconds)</label>
+  <div class="site-list" id="siteList"></div>
+
+  <div class="site-row">
+    <input id="siteHost" type="text" placeholder="example.com" />
+    <input id="siteLimit" type="number" min="1" placeholder="seconds" />
+    <button id="addSite">Add</button>
+  </div>
+
+  <button id="save">Save settings</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>
