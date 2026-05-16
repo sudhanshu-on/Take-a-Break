@@ -22,10 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const limitLabel = document.createElement('input');
       limitLabel.type = 'number';
-      limitLabel.min = 1;
-      limitLabel.value = sites[host];
+      limitLabel.min = 0.5;
+      limitLabel.step = 0.5;
+      // display minutes in the UI (stored value in seconds)
+      limitLabel.value = (sites[host] / 60).toFixed(1).replace(/\.0$/, '');
       limitLabel.addEventListener('change', () => {
-        sites[host] = Number(limitLabel.value);
+        const minutes = Number(limitLabel.value);
+        sites[host] = Math.max(30, Math.round(minutes * 60));
       });
 
       const remove = document.createElement('button');
@@ -43,9 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // load saved settings
-  chrome.storage.sync.get({ websiteLimits: {}, defaultBreak: 5 }, (items) => {
+  chrome.storage.sync.get({ websiteLimits: {}, defaultBreak: 300 }, (items) => {
     sites = items.websiteLimits || {};
-    defaultBreak.value = items.defaultBreak || 5;
+    // stored defaultBreak is seconds; show minutes in UI
+    const defaultMinutes = (items.defaultBreak || 300) / 60;
+    defaultBreak.value = Number(Number(defaultMinutes).toFixed(1)).toString().replace(/\.0$/, '');
     renderSites();
   });
 
@@ -53,14 +58,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const host = siteHost.value.trim();
     const limit = Number(siteLimit.value);
     if (!host || !limit) return;
-    sites[host.replace(/^www\./, '')] = limit;
+    // convert minutes to seconds for storage
+    const seconds = Math.max(30, Math.round(limit * 60));
+    sites[host.replace(/^www\./, '')] = seconds;
     siteHost.value = '';
     siteLimit.value = '';
     renderSites();
   });
 
   save.addEventListener('click', () => {
-    const defaultVal = Number(defaultBreak.value) || 5;
+    const defaultMinutes = Number(defaultBreak.value) || 5;
+    const defaultVal = Math.max(30, Math.round(defaultMinutes * 60));
     chrome.storage.sync.set({ websiteLimits: sites, defaultBreak: defaultVal }, () => {
       // notify background to reload (background also listens to storage changes, but send a message to be explicit)
       chrome.runtime.sendMessage({ action: 'SETTINGS_UPDATED' });

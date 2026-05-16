@@ -1,35 +1,120 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Break Extension</title>
+  <title>Take a Break</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
-    body { font-family: Arial, sans-serif; padding: 12px; width: 320px; }
-    label { display:block; margin-top:8px; }
-    input[type="text"], input[type="number"] { width:100%; padding:6px; box-sizing:border-box }
-    .site-row { display:flex; gap:6px; margin-top:6px }
-    .site-row input { flex:1 }
-    .site-list { margin-top:8px }
-    button { margin-top:10px }
+    :root{
+      --bg:#07101a; --panel:#0b1620; --muted:#98a6b3; --accent:#39ff14; --glass: rgba(255,255,255,0.04);
+    }
+    html,body{height:auto;margin:0;}
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(180deg,#041018 0%, #071827 100%);
+      color: #e6f2ff;
+      padding: 12px 12px 8px 12px;
+      width:360px;
+      box-sizing: border-box;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(57,255,20,0.06);
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(2,6,10,0.6);
+      margin-bottom: 0;
+    }
+    header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .logo{
+      width:40px;
+      height:40px;
+      position:relative;
+      background: radial-gradient(circle at 30% 30%, rgba(57,255,20,0.22), rgba(4,16,24,0.92) 70%);
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#001;
+      font-weight:700;
+      overflow:hidden;
+      box-shadow:
+        0 0 0 1px rgba(57,255,20,0.16),
+        0 0 24px rgba(57,255,20,0.18),
+        inset 0 0 16px rgba(255,255,255,0.04);
+    }
+    .logo::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+      pointer-events:none;
+    }
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      padding:5px;
+      box-sizing:border-box;
+      filter:
+        drop-shadow(0 0 4px rgba(57,255,20,0.32))
+        drop-shadow(0 0 10px rgba(57,255,20,0.18));
+    }
+    h1{font-size:16px;margin:0}
+    label{display:block;margin-top:10px;color:var(--muted);font-size:12px}
+    .row{display:flex;gap:8px;align-items:center}
+    input[type="text"], input[type="number"]{
+      width:100%; padding:8px 10px; box-sizing:border-box; background:transparent; border:1px solid rgba(255,255,255,0.04); color:inherit; border-radius:8px;
+      outline:none; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+    }
+    input::placeholder{color:rgba(230,242,255,0.2)}
+    .site-row{display:flex;gap:8px;margin-top:8px}
+    .site-row input{flex:1}
+    .site-list{margin-top:8px; max-height:140px; overflow:auto; padding-right:6px}
+    button{background:linear-gradient(90deg, rgba(57,255,20,0.12), rgba(57,255,20,0.06)); border:1px solid rgba(57,255,20,0.12); color:var(--accent); padding:8px 10px; border-radius:8px; cursor:pointer}
+    button.primary{background: linear-gradient(90deg,#39ff14 0%, #26e000 100%); color:#001; font-weight:700}
+    .small{font-size:12px; color:var(--muted)}
+    .muted{color:var(--muted)}
+    .limit-badge{font-family:ui-monospace, 'Roboto Mono', monospace; background:var(--glass); padding:6px 8px; border-radius:8px; border:1px solid rgba(255,255,255,0.02)}
+    .controls{display:flex;gap:8px;margin-top:12px}
+    .site-row .remove{background:transparent;border:1px solid rgba(255,255,255,0.04); color:var(--muted)}
+    .tiny{font-size:11px}
+    footer{margin-top:10px;display:flex;justify-content:space-between;align-items:center}
   </style>
 </head>
 <body>
-  <h1>Break Extension</h1>
+  <div class="card">
+    <header>
+      <div class="logo"><img src="icons/bone-broken-svgrepo-com.svg" alt="Take a Break logo" /></div>
+      <div>
+        <h1>Take a Break</h1>
+        <div class="small muted">Gentle reminders of Break.</div>
+      </div>
+    </header>
 
-  <label>Default break seconds</label>
-  <input id="defaultBreak" type="number" min="1" value="5" />
+    <label>Default break (minutes)</label>
+    <div class="row">
+      <input id="defaultBreak" type="number" min="0.5" step="0.5" value="5" />
+      <div class="limit-badge tiny">min</div>
+    </div>
 
-  <label>Per-site limits (hostname → seconds)</label>
-  <div class="site-list" id="siteList"></div>
+    <label style="margin-top:12px">Per-site limits (hostname → minutes)</label>
+    <div class="site-list" id="siteList"></div>
 
-  <div class="site-row">
-    <input id="siteHost" type="text" placeholder="example.com" />
-    <input id="siteLimit" type="number" min="1" placeholder="seconds" />
-    <button id="addSite">Add</button>
+    <div class="site-row">
+      <input id="siteHost" type="text" placeholder="example.com" />
+      <input id="siteLimit" type="number" min="0.5" step="0.5" placeholder="minutes" />
+      <button id="addSite">Add</button>
+    </div>
+
+    <div class="controls">
+      <button id="save" class="primary">Save</button>
+      <!-- <button id="openOptions" class="tiny">Options</button> -->
+      <div style="flex:1"></div>
+      <div class="small muted">v0.1</div>
+    </div>
   </div>
-
-  <button id="save">Save settings</button>
 
   <script src="popup.js"></script>
 </body>

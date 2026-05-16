@@ -130,6 +130,13 @@ function hideGraceWarning() {
     }
 }
 
+function formatSecondsToMMSS(totalSeconds) {
+    const s = Math.max(0, Math.floor(totalSeconds));
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 function showGraceWarning(seconds) {
 
     hideGraceWarning();
@@ -151,13 +158,13 @@ function showGraceWarning(seconds) {
 
     warningTimer = setInterval(() => {
         const remainingMs = endTime - Date.now();
-        const remaining = Math.max(0, Math.ceil(remainingMs / 1000));
+        const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
 
         let timerText = document.getElementById("break-warning-timer");
 
-        if (timerText) timerText.innerText = remaining;
+        if (timerText) timerText.innerText = formatSecondsToMMSS(remainingSec);
 
-        if (remaining <= 0) {
+        if (remainingSec <= 0) {
             clearInterval(warningTimer);
             warningTimer = null;
             hideGraceWarning();
@@ -182,7 +189,7 @@ function showBreakOverlay(seconds) {
         <video id="cat-break-video" autoplay muted loop playsinline style="display:none"></video>
         <div id="cat-top-line">Take a break mate! i got you<3</div>
         <div id="cat-box">
-            <h1>Brake tem !!</h1>
+            <h1>Break Time!!</h1>
             <p id="break-timer">${seconds}</p>
         </div>
     `;
@@ -213,20 +220,21 @@ function showBreakOverlay(seconds) {
 
     requestAnimationFrame(renderBreakVideoFrame);
 
-    let remaining = seconds;
+    // Use an absolute end timestamp for accuracy and show MM:SS
+    const breakEndTime = Date.now() + Math.max(0, seconds) * 1000;
+
+    // Initialize display immediately
+    const initialTimerText = document.getElementById("break-timer");
+    if (initialTimerText) initialTimerText.innerText = formatSecondsToMMSS(Math.ceil(seconds));
 
     breakTimer = setInterval(() => {
-
-        remaining--;
+        const remainingMs = breakEndTime - Date.now();
+        const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
 
         let timerText = document.getElementById("break-timer");
+        if (timerText) timerText.innerText = formatSecondsToMMSS(remainingSec);
 
-        if (timerText) {
-
-            timerText.innerText = remaining;
-        }
-
-        if (remaining <= 0) {
+        if (remainingSec <= 0) {
             clearInterval(breakTimer);
             breakTimer = null;
 
@@ -238,7 +246,7 @@ function showBreakOverlay(seconds) {
             }
         }
 
-    }, 1000);
+    }, 200);
 }
 
 function resizeBreakCanvas() {
