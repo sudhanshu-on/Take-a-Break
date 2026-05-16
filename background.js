@@ -4,7 +4,22 @@ let websiteTimes = {};
 
 let isOnBreak = false;
 
+let warningShown = {};
+
+// let websiteLimits = {
+//     "instagram.com": 10,
+//     "youtube.com": 10,
+//     "chatgpt.com": 45
+// };
+
 // let defaultBreak = 5;
+
+const graceWarningSeconds = 15;
+
+function getGraceWarningDuration(limit) {
+
+    return Math.min(graceWarningSeconds, limit);
+}
 
 // load saved settings
 chrome.storage && chrome.storage.sync && chrome.storage.sync.get({ websiteLimits: {}, defaultBreak: {} }, (items) => {
@@ -101,6 +116,19 @@ function checkBreakRules() {
 
     let timeSpent = websiteTimes[currentWebsite];
 
+    let currentGraceWarningSeconds = getGraceWarningDuration(limit);
+    let warningThreshold = Math.max(0, limit - currentGraceWarningSeconds);
+
+    if (timeSpent >= warningThreshold && timeSpent < limit && !warningShown[currentWebsite]) {
+
+        warningShown[currentWebsite] = true;
+
+        sendBreakMessageToActiveTab({
+            action: "SHOW_WARNING",
+            warningSeconds: currentGraceWarningSeconds
+        });
+    }
+
     if (timeSpent >= limit) {
 
         console.log("BREAK TIME FOR:", currentWebsite);
@@ -108,7 +136,20 @@ function checkBreakRules() {
         triggerBreak();
 
         websiteTimes[currentWebsite] = 0;
+        warningShown[currentWebsite] = false;
     }
+}
+
+async function sendBreakMessageToActiveTab(message) {
+
+    let tabs = await chrome.tabs.query({
+        active: true,
+        currentWindow: true
+    });
+
+    if (tabs.length === 0) return;
+
+    await sendBreakMessage(tabs[0], message);
 }
 
 setInterval(() => {
@@ -119,6 +160,8 @@ setInterval(() => {
 
         websiteTimes[currentWebsite] = 0;
     }
+
+    checkBreakRules();
 
     websiteTimes[currentWebsite]++;
 
@@ -151,6 +194,8 @@ function startBreakTimer(seconds) {
 async function endBreak() {
 
     isOnBreak = false;
+
+    warningShown[currentWebsite] = false;
 
     let tabs = await chrome.tabs.query({
         active: true,

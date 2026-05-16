@@ -27,5 +27,14 @@
       "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "overlay_video/cat.mp4"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ]
 }
